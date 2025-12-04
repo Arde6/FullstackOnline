@@ -1,68 +1,78 @@
-const Header = (props) => {
-  // Consts
+import { useState } from 'react'
 
-  // console.log
-  console.log(props)
-  return (
-    <h1>
-      {props.course}
-    </h1>
-  )
-}
-
-const Content = (props) => {
-  // Consts
-
+const Avarage = ( all, feedback ) => {
+  const avg = 1
   return (
     <div>
-      <h2>
-        Content:
-      </h2>
-      {props.parts.map((part, index) => (
-        <p key={index}>
-          Part {index +1}: {part.name} <br />
-          Exercies: {part.exercises}
-        </p>
-      ))}
+      <p>
+        avarage {avg}
+      </p>
     </div>
   )
 }
 
-const Total = (props) => {
-  // Consts
-  let y = 0
-  props.parts.forEach(part => {
-    y = y + part.exercises
-  })
+const DisplayStats = ({ feedback }) => {
+  const all = Object.values(feedback).reduce((sum, value) => sum + value, 0)
+  if (all === 0) {
+    return (
+      <div>
+        <h1>
+          statistics
+        </h1>
+        <p>
+          No feedback given
+        </p>
+      </div>
+    )
+  } else {
+    return (
+      <div>
+        <h1>
+          statistics
+        </h1>
+        <p>
+          good {feedback.good}
+        </p>
+        <p>
+          neutral {feedback.neutral}
+        </p>
+        <p>
+          bad {feedback.bad}
+        </p>
+        <p>
+          all {all}
+        </p>
+        <Avarage all={all} feedback={feedback} />
+      </div>
+    )
+  }
+}
 
+const Button = (props) => {
   return (
-    <h3>Total exercies: {y}</h3>
+    <button onClick={props.onClick}>
+      {props.text}
+    </button>
   )
 }
 
 const App = () => {
-  // Consts
-  const course = 'Half Stack application development'
-  const parts = [
-    {
-      name: 'Fundamentals of React',
-      exercises: 10
-    },
-    {
-      name: 'Using props to pass data',
-      exercises: 7
-    },
-    {
-      name: 'State of a component',
-      exercises: 14
-    }
-  ]
+  // const [good, setGood] = useState(0)
+  // const [neutral, setNeutral] = useState(0)
+  // const [bad, setBad] = useState(0)
+  const [feedback, setFeedback] = useState({ good: 0, neutral: 0, bad: 0})
+
+  const handleClick = (type) => {
+    setFeedback({ ...feedback, [type]: feedback[type] + 1 })
+  }
 
   return (
     <div>
-      <Header course={course} />
-      <Content parts={parts} />
-      <Total parts={parts} />
+      <h1>give feedback</h1>
+      <button onClick={() => handleClick('good')}>Good</button>
+      <button onClick={() => handleClick('neutral')}>Neutral</button>
+      <button onClick={() => handleClick('bad')}>Bad</button>
+      <DisplayStats feedback={feedback}/>
     </div>
   )
 }
