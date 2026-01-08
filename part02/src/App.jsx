@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import Note from './components/Note'
 import Courses from './components/Courses'
 import Name from './components/Name'
@@ -8,10 +9,24 @@ import Name from './components/Name'
  */
 
 // const App = (props) => {  
-//   const [notes, setNotes] = useState(props.notes)
+//   const [notes, setNotes] = useState([])
 //   const [newNote, setNewNote] = useState('')
 //   const [showAll, setShowAll] = useState(true)
-
+//
+//   const hook = () => {
+//     console.log('effect')
+//     axios
+//       .get('http://localhost:3001/notes')
+//       .then(response => {
+//         console.log('promise fulfilled')
+//         setNotes(response.data)
+//       })
+//   }
+//
+//   useEffect(hook, [])
+//
+//   console.log('render', notes.length, 'notes')
+//
 //   const addNote = (event) => {
 //     event.preventDefault()
 //     const noteObject = {
@@ -19,19 +34,19 @@ import Name from './components/Name'
 //       important: Math.random() > 0.5,
 //       id: String(notes.length + 1),
 //     }
-
+//
 //     setNotes(notes.concat(noteObject))
 //     setNewNote('')
 //   }
-
+//
 //   const handleNoteChange = (event) => {
 //     setNewNote(event.target.value)
 //   }
-
+//
 //   const notesToShow = showAll
 //     ? notes
 //     : notes.filter(note => note.important === true)
-
+//
 //   return (
 //     <div>
 //       <h1>Notes</h1>
@@ -127,7 +142,7 @@ import Name from './components/Name'
  */
 
 const Filter = ({ text, filter, handleFilterChange }) => {
-  
+
   return (
     <div>
       <form>
@@ -181,15 +196,20 @@ const Persons = ({ persons, filter }) => {
 
 const App = () => {
 
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ])
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNum, setNewNum] = useState('')
   const [filter, setFilter] = useState('')
+
+  const hook = () => {
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        setPersons(response.data)
+      })
+  }
+
+  useEffect(hook, [])
 
   const addName = (event) => {
     const errorMessage = `${newName} is already added to phonebook`
@@ -233,7 +253,7 @@ const App = () => {
     <div>
 
       <h2>Phonebook</h2>
-      
+
       <Filter text={"search: "} filter={filter} handleFilterChange={handleFilterChange} />
 
       <h3>Add new</h3>
