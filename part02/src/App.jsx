@@ -4,6 +4,7 @@ import Note from './components/Note'
 import Courses from './components/Courses'
 import Name from './components/Name'
 import peopleService from './services/people'
+import Notificaition from './components/Notification'
 
 /**
  * -------- Example ---------
@@ -202,6 +203,9 @@ const App = () => {
   const [newNum, setNewNum] = useState('')
   const [filter, setFilter] = useState('')
 
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [infoMessage, setInfoMessage] = useState(null)
+
   useEffect(() => {
     peopleService
       .getAll()
@@ -211,6 +215,8 @@ const App = () => {
   }, [])
 
   const addName = (event) => {
+    event.preventDefault()
+    
     const errorMessage = `${newName} is already added to phonebook, replace the old number with a new one?`
 
     const nameExists = persons.some(person => person.name === newName)
@@ -220,27 +226,31 @@ const App = () => {
       if (window.confirm(errorMessage)) {
         console.log("todo")
       }
-      return
-    }
+    } else if (newNum === '' || newName === ''){
+        setErrorMessage(
+          'Name or number is empty'
+        )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+    } else {
+        const nameObject = {
+          name: newName,
+          number: newNum,
+        }
 
-    if (newNum === '' || newName === ''){
-      alert('Empty value')
-      return
+        peopleService
+          .create(nameObject)
+          .then(response => {
+            setPersons(persons.concat(response.data))
+            setNewName('')
+            setNewNum('')
+            setInfoMessage(nameObject.name + ' added succesfully')
+            setTimeout(() => {
+              setInfoMessage(null)
+            }, 5000);
+          })
     }
-
-    event.preventDefault()
-    const nameObject = {
-      name: newName,
-      number: newNum,
-    }
-
-    peopleService
-      .create(nameObject)
-      .then(response => {
-        setPersons(persons.concat(response.data))
-        setNewName('')
-        setNewNum('')
-      })
   }
 
   const deleteName = (id) => {
@@ -268,15 +278,18 @@ const App = () => {
   return (
     <div>
 
-      <h2>Phonebook</h2>
+      <h1>Phonebook</h1>
+
+      <Notificaition message={errorMessage} type="error" />
+      <Notificaition message={infoMessage} type="info" />
 
       <Filter text={"search: "} filter={filter} handleFilterChange={handleFilterChange} />
 
-      <h3>Add new</h3>
+      <h2>Add new</h2>
 
       <PersonForm addName={addName} newName={newName} handleNameChange={handleNameChange} newNum={newNum} handleNumChange={handleNumChange} />
 
-      <h3>Numbers</h3>
+      <h2>Numbers</h2>
 
       <Persons persons={persons} filter={filter} deleteName={deleteName} />
 
