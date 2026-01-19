@@ -234,6 +234,10 @@ const App = () => {
           .update(id, nameObject)
           .then((returnedPerson) => {
             setPersons(persons.map((person) => (person.id !== id ? person : returnedPerson)))
+            setInfoMessage(nameObject.name + ' modified succesfully')
+            setTimeout(() => {
+              setInfoMessage(null)
+            }, 5000)
           })
           .catch((error) => {
             setErrorMessage(
