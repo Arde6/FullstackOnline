@@ -1,4 +1,4 @@
-const Notificaition = ({ message, type }) => {
+const Notification = ({ message, type }) => {
     if (message === null) {
         return null
     }
@@ -17,4 +17,4 @@ const Notificaition = ({ message, type }) => {
     }
 }
 
-export default Notificaition
+export default Notification

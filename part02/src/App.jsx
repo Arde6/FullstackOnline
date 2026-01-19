@@ -4,7 +4,7 @@ import Note from './components/Note'
 import Courses from './components/Courses'
 import Name from './components/Name'
 import peopleService from './services/people'
-import Notificaition from './components/Notification'
+import Notification from './components/Notification'
 
 /**
  * -------- Example ---------
@@ -221,10 +221,28 @@ const App = () => {
 
     const nameExists = persons.some(person => person.name === newName)
 
+    const nameObject = {
+      name: newName,
+      number: newNum,
+    }
+
     if (nameExists) {
       const personToUpdate = persons.find(person => person.name === newName)
+      const id = personToUpdate.id
       if (window.confirm(errorMessage)) {
-        console.log("todo")
+        peopleService
+          .update(id, nameObject)
+          .then((returnedPerson) => {
+            setPersons(persons.map((person) => (person.id !== id ? person : returnedPerson)))
+          })
+          .catch((error) => {
+            setErrorMessage(
+              'Person doesn\'t exist anymore'
+            )
+            setTimeout(() => {
+              setErrorMessage(null)
+            }, 5000)
+          })
       }
     } else if (newNum === '' || newName === ''){
         setErrorMessage(
@@ -234,11 +252,6 @@ const App = () => {
           setErrorMessage(null)
         }, 5000)
     } else {
-        const nameObject = {
-          name: newName,
-          number: newNum,
-        }
-
         peopleService
           .create(nameObject)
           .then(response => {
@@ -280,8 +293,8 @@ const App = () => {
 
       <h1>Phonebook</h1>
 
-      <Notificaition message={errorMessage} type="error" />
-      <Notificaition message={infoMessage} type="info" />
+      <Notification message={errorMessage} type="error" />
+      <Notification message={infoMessage} type="info" />
 
       <Filter text={"search: "} filter={filter} handleFilterChange={handleFilterChange} />
 
