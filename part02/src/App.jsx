@@ -341,7 +341,7 @@ const Filter = ({ text, filter, handleFilterChange }) => {
   )
 }
 
-const AllCountries = ({ countriesToShow }) => {
+const ShowCountries = ({ countriesToShow }) => {
   return (
     <ul>
       {countriesToShow.map(country => 
@@ -351,10 +351,19 @@ const AllCountries = ({ countriesToShow }) => {
   )
 }
 
+const ShowCountry = ({ oneCountry }) => {
+  const name = oneCountry.name.common
+
+  return (
+    <h1> {name} </h1>
+  )
+}
+
 const App = () => {
 
   const [countries, setCountries] = useState(null)
   const [filter, setFilter] = useState('')
+  const [oneCountry, setOneCountry] = useState(null)
 
   useEffect(() => {
     countryService
@@ -362,7 +371,15 @@ const App = () => {
       .then(response => {
         setCountries(response.data)
       })  
-  }, [countries])
+  }, [])
+
+  useEffect(() => {
+    countryService
+      .getOne()
+      .then(response => {
+        setOneCountry(response.data)
+      })
+  }, [oneCountry])
 
   if(countries === null) {
     return null
@@ -380,6 +397,8 @@ const App = () => {
     return (
       <div>
         <Filter text={"search: "} filter={filter} handleFilterChange={handleFilterChange} />
+        
+        <ShowCountry oneCountry={oneCountry}/>
       </div>
     )
   }
@@ -388,7 +407,7 @@ const App = () => {
     <div>
       <Filter text={"search: "} filter={filter} handleFilterChange={handleFilterChange} />
 
-      <AllCountries countriesToShow={countriesToShow} />
+      <ShowCountries countriesToShow={countriesToShow} />
     </div>
   )
 }

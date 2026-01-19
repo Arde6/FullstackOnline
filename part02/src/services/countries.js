@@ -6,6 +6,7 @@ const getAll = () => {
 } 
 
 const getOne = (name) => {
+    console.log('fetching from: ' + baseUrl + '/name/' + name)
     return axios.get(baseUrl + '/name/' + name)
 }
 
