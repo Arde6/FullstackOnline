@@ -341,29 +341,95 @@ const Filter = ({ text, filter, handleFilterChange }) => {
   )
 }
 
-const ShowCountries = ({ countriesToShow }) => {
-  return (
-    <ul>
-      {countriesToShow.map(country => 
-        <li key={country.name.common}>{country.name.common}</li>
-      )}
-    </ul>
-  )
-}
-
 const ShowCountry = ({ oneCountry }) => {
+  const [country, setCountry] = useState(null)
+  const [weather, setWeather] = useState(null)
   const name = oneCountry.name.common
 
-  return (
-    <h1> {name} </h1>
-  )
+  useEffect(() => {
+    countryService
+      .getOne(name)
+      .then(response => {
+        setCountry(response.data)
+      })
+  }, [])
+
+  console.log(country)
+
+  useEffect(() => {
+    if (country !== null) {
+    countryService
+      .getWeather(country.capitalInfo.latlng[0], country.capitalInfo.latlng[1])
+      .then(response => {
+        console.log(response.data)
+        setWeather(response.data)
+      })
+    }
+  }, [country])
+
+  if (country !== null) {
+    return (
+      <div>
+        <h1> {name} </h1>
+        <p> Capital: {country.capital} </p>
+        <p> Area: {country.area} km² </p>
+        <h2> Languages: </h2>
+        <ul>
+          {Object.values(country.languages).map(language =>
+            <li key={language}> {language} </li>
+          )}
+        </ul>
+        <img src={country.flags.svg} height={250}/>
+        {weather ? (
+          <div>
+            <h2> Weather in Helsinki: </h2>
+            <ul>
+              <li key={"Temp"}> <b> Temperature: </b> {weather.current.temperature_2m} {weather.current_units.temperature_2m} </li>
+              <li key={"Wind"}> <b> Wind: </b> {weather.current.wind_speed_10m} {weather.current_units.wind_speed_10m} / {(weather.current.wind_speed_10m / 2.6).toFixed(2)} m/s </li>
+            </ul>
+          </div>
+        ) : (
+          <p> Wather service loading or unavailable </p>
+        )}
+        
+      </div>
+    )
+  } else {
+    return null
+  }
+}
+
+const ShowCountries = ({ countriesToShow, setSelectedCountry }) => {
+  if (countriesToShow.length > 10) {
+    return (
+      <p>Too many matches, specify another filter</p>
+    )
+  } else if (countriesToShow.length === 1) {
+    return (
+      <div>
+        <ShowCountry oneCountry={countriesToShow[0]} />
+      </div>
+    )
+  } else {
+    return (
+      <ul>
+        {countriesToShow.map(country => 
+          <li key={country.name.common}>
+            {country.name.common} <button onClick={() => setSelectedCountry(country) }>
+              show
+            </button> 
+          </li>
+        )}
+      </ul>
+    )
+  }
 }
 
 const App = () => {
 
   const [countries, setCountries] = useState(null)
   const [filter, setFilter] = useState('')
-  const [oneCountry, setOneCountry] = useState(null)
+  const [selectedCountry, setSelectedCountry] = useState(null)
 
   useEffect(() => {
     countryService
@@ -373,41 +439,28 @@ const App = () => {
       })  
   }, [])
 
-  useEffect(() => {
-    countryService
-      .getOne()
-      .then(response => {
-        setOneCountry(response.data)
-      })
-  }, [oneCountry])
-
   if(countries === null) {
     return null
   }
 
-  const countriesToShow = countries.filter(country =>
-    country.name.common.toLowerCase().includes(filter.toLowerCase())
-  );
-
   const handleFilterChange = (event) => {
     setFilter(event.target.value)
+    setSelectedCountry(null)
   }
 
-  if (countriesToShow.lenght === 1) {
-    return (
-      <div>
-        <Filter text={"search: "} filter={filter} handleFilterChange={handleFilterChange} />
-        
-        <ShowCountry oneCountry={oneCountry}/>
-      </div>
-    )
-  }
+  const countriesToShow = countries.filter(country =>
+    country.name.common.toLowerCase().includes(filter.toLowerCase())
+  )
 
   return (
     <div>
       <Filter text={"search: "} filter={filter} handleFilterChange={handleFilterChange} />
 
-      <ShowCountries countriesToShow={countriesToShow} />
+      {selectedCountry ? (
+        <ShowCountry oneCountry={selectedCountry} />
+      ) : (
+        <ShowCountries countriesToShow={countriesToShow} setSelectedCountry={setSelectedCountry} />
+      )}
     </div>
   )
 }

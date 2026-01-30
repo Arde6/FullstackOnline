@@ -29,3 +29,7 @@ li {
     padding: 10px;
     margin-bottom: 10px;
 }
+
+img {
+    border: 5px solid #cfcfcf;
+}
