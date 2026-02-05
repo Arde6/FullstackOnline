@@ -1,6 +1,14 @@
+require('dotenv').config()
 const express = require('express')
-const app = express()
 var morgan = require('morgan')
+const Person = require('./models/person')
+const person = require('./models/person')
+const app = express()
+
+// const password = process.argv[2]
+// const url = `mongodb+srv://aj:${password}@cluster0.u7ezs0d.mongodb.net/phonebook?retryWrites=true&w=majority&appName=Cluster0`
+
+// const Person = mongoose.model('Person', personSchema)
 
 app.use(express.json())
 app.use(morgan('tiny'))
@@ -15,60 +23,49 @@ morgan.token('body', (request, response) => {
 
 app.use(morgan(':method :url :status :res[content-lenght] - :response-time ms :body'))
 
-let persons = [
-    { 
-        "id": "1",
-        "name": "Arto Hellas", 
-        "number": "040-123456"
-    },
-    { 
-        "id": "2",
-        "name": "Ada Lovelace", 
-        "number": "39-44-5323523"
-    },
-    { 
-        "id": "3",
-        "name": "Dan Abramov", 
-        "number": "12-43-234345"
-    },
-    { 
-        "id": "4",
-        "name": "Mary Poppendieck", 
-        "number": "39-23-6423122"
-    }
-]
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(persons => {
+        response.json(persons)
+    })
 })
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    const person = persons.find(person => person.id === id)
-    
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id)
+        .then(person => {
+            if (person) {
+                response.json(person)
+            } else {
+                response.status(404).end()
+            }
+        })
+        .catch(error => {
+            next(error)
+        })
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    persons = persons.filter(persons => persons.id !== id)
-
-    response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+        .then(result => {
+            response.status(204).end()
+        })
+        .catch(error => next(error))
 })
-
-const generateId = () => {
-    const max = 1000000000000
-    const id = Math.floor(Math.random() * max);
-    return String(id)
-}
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -85,21 +82,14 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    if (persons.find(person => person.name === body.name)) {
-        return response.status(400).json({
-            error: 'name must be unique'
-        })
-    }
-
-    const person = {
-        id: generateId(),
+    const person = new Person({
         name: body.name,
         number: body.number,
-    }
+    })
 
-    persons = persons.concat(person)
-
-    response.json(person)
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
 })
 
 app.get('/info', (request, response) => {

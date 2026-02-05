@@ -15,7 +15,9 @@
   "author": "Artturi Juurenheimo",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "mongoose": "^9.1.6",
     "morgan": "^1.10.1"
   },
   "devDependencies": {
