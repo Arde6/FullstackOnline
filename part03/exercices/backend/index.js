@@ -92,19 +92,42 @@ app.post('/api/persons', (request, response) => {
     })
 })
 
+app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
+
+    Person.findById(request.params.id)
+        .then(person => {
+            if (!person) {
+                return response.status(404).end()
+            }
+
+            person.name = body.name
+            person.number = body.number
+
+            return person.save().then((updatedPerson) => {
+                response.json(updatedPerson)
+            })
+        })
+        .catch(error => next(error))
+})
+
 app.get('/info', (request, response) => {
-    const amount = persons.length
-    const date = new Date()
-    if (amount !== 1) {
-        response.send(
-            '<p> Phonebook has info for ' + amount + ' people </p>' +
-            '<p>' + date + '</p>'
-        )
-    } else {
-        response.send(
-            '<p> Phonebook has info for ' + amount + ' person </p>'
-        )
-    }
+    Person.find({})
+        .then(persons => {
+            let amount = persons.length
+            const date = new Date()
+            if (amount !== 1) {
+                response.send(
+                    '<p> Phonebook has info for ' + amount + ' people </p>' +
+                    '<p>' + date + '</p>'
+                )
+            } else {
+                response.send(
+                    '<p> Phonebook has info for ' + amount + ' person </p>'
+                )
+            }
+        })
+        .catch(error => next(error))
 })
 
 const PORT = 3001
