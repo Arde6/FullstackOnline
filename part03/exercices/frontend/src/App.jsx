@@ -95,15 +95,17 @@ const App = () => {
         peopleService
           .update(id, nameObject)
           .then((returnedPerson) => {
-            setPersons(persons.map((person) => (person.id !== id ? person : returnedPerson)))
+            setPersons(persons.map((person) => (person.id !== id ? person : returnedPerson.data)))
             setInfoMessage(nameObject.name + ' modified succesfully')
+            setNewName('')
+            setNewNum('')
             setTimeout(() => {
               setInfoMessage(null)
             }, 5000)
           })
           .catch((error) => {
             setErrorMessage(
-              'Person doesn\'t exist anymore'
+              error.response.data.error
             )
             setTimeout(() => {
               setErrorMessage(null)
@@ -112,7 +114,7 @@ const App = () => {
       }
     } else if (newNum === '' || newName === ''){
         setErrorMessage(
-          'Name or number is empty'
+          error.response.data.error
         )
         setTimeout(() => {
           setErrorMessage(null)
@@ -128,6 +130,14 @@ const App = () => {
             setTimeout(() => {
               setInfoMessage(null)
             }, 5000);
+          })
+          .catch((error) => {
+            setErrorMessage(
+              error.response.data.error
+            )
+            setTimeout(() => {
+              setErrorMessage(null)
+            }, 5000)
           })
     }
   }
