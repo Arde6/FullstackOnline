@@ -33,7 +33,7 @@ test('a specific blog is within the returned blogs', async () => {
     assert.strictEqual(titles.includes('Html is easy'), true)
 })
 
-test('a valid note can be added', async () => {
+test('a valid blog can be added', async () => {
     const newBlog = {
         title: 'async/await simplifies making async calls',
         author: 'fullstackopen',
@@ -52,12 +52,12 @@ test('a valid note can be added', async () => {
     assert(titles.includes('async/await simplifies making async calls'))
 })
 
-test('blog without title is not added', async () => {
+test('blog without title or author are not added', async () => {
     const newBlog = {
         author: 'fullstackopen'
     }
 
-    await api
+    const result = await api
         .post('/api/blogs')
         .send(newBlog)
         .expect(400)
@@ -65,6 +65,25 @@ test('blog without title is not added', async () => {
     const blogsAtEnd = await helper.blogsInDb()
 
     assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+    
+    // console.log(result)
+
+    assert.strictEqual(result.status, 400)
+
+  const newBlog2 = {
+    title: 'Meikä mandoliinin seikkalut'
+  }
+
+  const result2 = await api
+    .post('/api/blogs')
+    .send(newBlog2)
+    .expect(400)
+
+  const blogsAtEnd2 = await helper.blogsInDb()
+
+  assert.strictEqual(blogsAtEnd2.length, helper.initialBlogs.length)
+  assert.strictEqual(result2.status, 400)
+
 })
 
 test('a specific note can be viewed', async () => {
@@ -93,6 +112,57 @@ test('a blog can be deleted', async () => {
     assert (!ids.includes(blogToDelete.id))
 
     assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+})
+
+test('blogs have identifier named id', async () => {
+  const blogs = await helper.blogsInDb()
+  const testBlogToGet = blogs[0]
+
+  const testBlog = await api
+    .get(`/api/blogs/${testBlogToGet.id}`)
+    .expect(200)
+    // .expect('Content-Type', /applcation\/json/)
+
+  // console.log(testBlog)
+  assert.strictEqual(testBlog.body.hasOwnProperty('id'), true)
+  // assert.strictEqual(!testBlog.hasOwnProperty('_id'))
+})
+
+test('blogs default to 0 likes', async () => {
+  const blogs = await helper.blogsInDb()
+  const blogToCompare = blogs[0]
+  
+  const blogInDb = await api
+    .get(`/api/blogs/${blogToCompare.id}`)
+    .expect(200)
+
+  const blogBeforeDb = helper.initialBlogs[0]
+  
+  assert.strictEqual(blogBeforeDb.hasOwnProperty('likes'), false)
+  // console.log(blogInDb) 
+  assert.strictEqual(blogInDb.body.likes, 0)
+})
+
+test('blog updated', async () => {
+  const blogsAtStart = await helper.blogsInDb()
+  const blogToUpdate = blogsAtStart[0]
+
+  const updatedData = {
+    title: blogToUpdate.title,
+    author: blogToUpdate.author,
+    likes: blogToUpdate.likes + 1
+  }
+
+  await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(updatedData)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await helper.blogsInDb()
+  const updatedBlog = blogsAtEnd.find(b => b.id === blogToUpdate.id)
+
+  assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 1)
 })
 
 after(async () => {
